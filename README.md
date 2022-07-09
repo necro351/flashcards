@@ -23,3 +23,20 @@ and is a JSON file that follows this format:
 ```
 
 ...add as many cards as you want.
+
+Here is a sample run:
+
+```
+flashcards ▶ flashcards
+Pick a topic to practice:
+0: Chapter 1
+1: Chapter 2
+Type the number of the topic to practice: 1
+Q: Who is your cat?
+A? Shortcut
+✅ 1/1 CORRECT
+Q: Who is your favorite person in the 0 to 3 age catgory?
+A? Diana
+✅ 2/2 CORRECT
+👏👏👏 GOOD JOB PRACTICING. Hope to see you again soon!
+```
