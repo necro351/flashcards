@@ -57,27 +57,35 @@ func main() {
 	topic := topics[number]
 
 	// Shuffle, then ask the user to type the answers to the given questions.
-	// Show them their average score.
-	cards := []permutedCard{}
+	// Show them their average score. Put any incorrect cards into a
+	// sepearate pile to go through again. Do this until there are no incorrect
+	// cards set aside.
+	cards, incorrect := []permutedCard{}, []permutedCard{}
 	for _, c := range topic.Cards {
-		cards = append(cards, permutedCard{c, rand.Int()})
+		incorrect = append(incorrect, permutedCard{c, rand.Int()})
 	}
 	sort.Sort(PermutedCards(cards))
 	right, total := 0, 0
-	for _, c := range cards {
-		fmt.Printf("Q: %s\nA? ", c.card.Question)
-		answer := ""
-		_, err = fmt.Scanf("%s", &answer)
-		if err != nil {
-			log.Fatal(err)
+	for len(incorrect) > 0 {
+		cards = incorrect
+		incorrect = nil
+		for i, c := range cards {
+			fmt.Printf("Q: %s\nA? ", c.card.Question)
+			answer := ""
+			_, err = fmt.Scanf("%s", &answer)
+			if err != nil {
+				log.Fatal(err)
+			}
+			total++
+			if answer == c.card.Answer {
+				right++
+				fmt.Printf("✅ %d/%d CORRECT %d cards left\n", right, total, len(incorrect)+len(cards)-i-1)
+			} else {
+				incorrect = append(incorrect, permutedCard{c.card, rand.Int()})
+				fmt.Printf("⾮ Expected '%s': %d/%d CORRECT %d cards left\n", c.card.Answer, right, total, len(incorrect)+len(cards)-i-1)
+			}
 		}
-		total++
-		if answer == c.card.Answer {
-			right++
-			fmt.Printf("✅ %d/%d CORRECT\n", right, total)
-		} else {
-			fmt.Printf("⾮ Expected '%s': %d/%d CORRECT\n", c.card.Answer, right, total)
-		}
+		sort.Sort(PermutedCards(incorrect))
 	}
 
 	// Congratulate the user for practicing a topic and exit.
