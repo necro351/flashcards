@@ -55,11 +55,37 @@ func main() {
 		log.Fatalf("Invalid topic number")
 	}
 	topic := topics[number]
+	fmt.Printf("🍿 REHEARSE: %s\n", topic.Title)
 
-	// Shuffle, then ask the user to type the answers to the given questions.
-	// Show them their average score. Put any incorrect cards into a
-	// sepearate pile to go through again. Do this until there are no incorrect
-	// cards set aside.
+	// Ask the user which stage they want to practice at. Depending on the stage
+	// present many small sets of cards or fewer large sets of cards.
+	fmt.Printf("Pick group size. There are %d cards. Size 8 is EASY, 32+ is HARD:\nGroup Size: ", len(topic.Cards))
+	size := 0
+	_, err = fmt.Scanf("%d", &size)
+	if size < 1 {
+		log.Fatalf("Invalid group size")
+	}
+	numgroups := len(topic.Cards) / size
+	for i := 0; i < numgroups; i++ {
+		fmt.Printf("✌️ REHEARSE STAGE %d/%d\n", i+1, numgroups)
+		subtopic := topic
+		start, end := i*size, (i+1)*size
+		if end >= len(subtopic.Cards) {
+			end = len(subtopic.Cards)
+		}
+		subtopic.Cards = subtopic.Cards[start:end]
+		rehearse(subtopic)
+	}
+
+	// Congratulate the user for practicing a topic and exit.
+	fmt.Printf("👏👏👏 GOOD JOB PRACTICING. Hope to see you again soon!\n")
+}
+
+// rehearse a topic. First shuffle the cards, then ask the user to type the
+// answers to the given questions.  Show them their average score. Put any
+// incorrect cards into a sepearate pile to go through again. Do this until
+// there are no incorrect cards set aside.
+func rehearse(topic Topic) {
 	cards, incorrect := []permutedCard{}, []permutedCard{}
 	for _, c := range topic.Cards {
 		incorrect = append(incorrect, permutedCard{c, rand.Int()})
@@ -72,24 +98,52 @@ func main() {
 		for i, c := range cards {
 			fmt.Printf("Q: %s\nA? ", c.card.Question)
 			answer := ""
-			_, err = fmt.Scanf("%s", &answer)
+			_, err := fmt.Scanf("%s", &answer)
 			if err != nil {
 				log.Fatal(err)
 			}
 			total++
-			if answer == c.card.Answer {
+			exact, nontonal := match(answer, c.card.Answer)
+			if exact || nontonal {
 				right++
-				fmt.Printf("✅ %d/%d CORRECT %d cards left\n", right, total, len(incorrect)+len(cards)-i-1)
+				if exact {
+					fmt.Printf("✅ %d/%d CORRECT %d+%d cards left\n",
+						right, total, len(cards)-i-1, len(incorrect))
+				} else {
+					fmt.Printf("☑️  %s: CLOSE: %d/%d CORRECT %d+%d cards left\n",
+						c.card.Answer, right, total, len(cards)-i-1, len(incorrect))
+				}
 			} else {
 				incorrect = append(incorrect, permutedCard{c.card, rand.Int()})
-				fmt.Printf("⾮ Expected '%s': %d/%d CORRECT %d cards left\n", c.card.Answer, right, total, len(incorrect)+len(cards)-i-1)
+				fmt.Printf("⾮ %s: MISTAKEN: %d/%d CORRECT %d+%d cards left\n",
+					c.card.Answer, right, total, len(cards)-i-1, len(incorrect))
 			}
 		}
 		sort.Sort(PermutedCards(incorrect))
 	}
+}
 
-	// Congratulate the user for practicing a topic and exit.
-	fmt.Printf("👏👏👏 GOOD JOB PRACTICING. Hope to see you again soon!\n")
+// match returns the result of two equality tests. First if the input exactly
+// matches the expected, and second if it would match if the Chinese tonal
+// numbers were ignored.
+func match(input, expected string) (bool, bool) {
+	exact := input == expected
+	nontonal := flatten(input) == flatten(expected)
+	return exact, nontonal
+}
+
+// flatten all Chinese tonal numbers by changing them to '_'.
+func flatten(s string) string {
+	var res strings.Builder
+	for i := range s {
+		switch s[i : i+1] {
+		case "1", "2", "3", "4":
+			res.WriteString("_")
+		default:
+			res.WriteString(s[i : i+1])
+		}
+	}
+	return res.String()
 }
 
 type Topic struct {
