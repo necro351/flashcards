@@ -47,7 +47,7 @@ func main() {
 	}
 	fmt.Printf("Type the number of the topic to practice: ")
 	number := 0
-	_, err = fmt.Scanf("%d", &number)
+	_, err = fmt.Scanf("%d\n", &number)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -67,7 +67,7 @@ func main() {
 	for _, c := range cards {
 		fmt.Printf("Q: %s\nA? ", c.card.Question)
 		answer := ""
-		_, err = fmt.Scanf("%s", &answer)
+		_, err = fmt.Scanf("%s\n", &answer)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -76,7 +76,7 @@ func main() {
 			right++
 			fmt.Printf("✅ %d/%d CORRECT\n", right, total)
 		} else {
-			fmt.Printf("⾮ Expected '%s': %d/%d CORRECT\n", c.card.Answer, right, total)
+			fmt.Printf("⾮ Expected '%s\n': %d/%d CORRECT\n", c.card.Answer, right, total)
 		}
 	}
 
