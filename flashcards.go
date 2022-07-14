@@ -62,22 +62,35 @@ func main() {
 	for _, c := range topic.Cards {
 		cards = append(cards, permutedCard{c, rand.Int()})
 	}
+	// wrongAnswers := cards
 	sort.Sort(PermutedCards(cards))
 	right, total := 0, 0
-	for _, c := range cards {
-		fmt.Printf("Q: %s\nA? ", c.card.Question)
-		answer := ""
-		_, err = fmt.Scanf("%s\n", &answer)
-		if err != nil {
-			log.Fatal(err)
+	for len(cards) != 0 {
+		for _, c := range cards {
+			// fmt.Printf("right:%d, card length:%d", right, len(cards))
+			fmt.Printf("Q: %s\nA? ", c.card.Question)
+			answer := ""
+			_, err = fmt.Scanf("%s\n", &answer)
+			if err != nil {
+				log.Fatal(err)
+			}
+			total++
+			if answer == c.card.Answer {
+				right++
+				for i := 0; i < len(cards); i++ {
+					q := cards[i]
+					if q.card.Question == c.card.Question {
+						cards = append(cards[:i], cards[i+1:]...)
+						i--
+					}
+				}
+				fmt.Printf("✅ %d/%d CORRECT\n", right, total)
+			} else {
+				// wrongAnswers = append(cards, permutedCard{c.card, 1})
+				fmt.Printf("⾮ Expected '%s'\n: %d/%d CORRECT\n", c.card.Answer, right, total)
+			}
 		}
-		total++
-		if answer == c.card.Answer {
-			right++
-			fmt.Printf("✅ %d/%d CORRECT\n", right, total)
-		} else {
-			fmt.Printf("⾮ Expected '%s\n': %d/%d CORRECT\n", c.card.Answer, right, total)
-		}
+		// cards := wrongAnswers
 	}
 
 	// Congratulate the user for practicing a topic and exit.
